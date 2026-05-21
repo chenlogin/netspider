@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSpider 产品需求文档 (PRD)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f7fa;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 48px 56px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            border-bottom: 3px solid #4361ee;
+            padding-bottom: 12px;
+            margin-bottom: 32px;
+        }
+        h2 {
+            font-size: 22px;
+            color: #2b2d42;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 4px solid #4361ee;
+        }
+        h3 {
+            font-size: 18px;
+            color: #3d405b;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+        p { margin-bottom: 12px; color: #555; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #dde1e7;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        th {
+            background: #f0f4ff;
+            color: #2b2d42;
+            font-weight: 600;
+        }
+        tr:nth-child(even) { background: #fafbfc; }
+        ul, ol {
+            margin: 12px 0 12px 24px;
+            color: #555;
+        }
+        li { margin-bottom: 6px; }
+        .meta-table td:first-child {
+            font-weight: 600;
+            background: #f8f9fb;
+            width: 140px;
+        }
+        .tag {
+            display: inline-block;
+            background: #e8ecff;
+            color: #4361ee;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .tag.p0 { background: #ffe0e0; color: #c0392b; }
+        .tag.p1 { background: #fff3cd; color: #856404; }
+        .tag.p2 { background: #d1ecf1; color: #0c5460; }
+        .architecture {
+            background: #f8f9fb;
+            border: 1px solid #e0e4ea;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 16px 0;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            white-space: pre;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .note {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 14px;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1>NetSpider 产品需求文档</h1>
+
+<table class="meta-table">
+    <tr><td>文档版本</td><td>V1.0</td></tr>
+    <tr><td>创建日期</td><td>2026-05-21</td></tr>
+    <tr><td>产品名称</td><td>NetSpider — 企业网络爬虫</td></tr>
+    <tr><td>文档状态</td><td><span class="tag">草稿</span></td></tr>
+</table>
+
+<h2>1. 产品概述</h2>
+<p>NetSpider 是一款面向公网的企业信息采集工具。用户通过输入搜索关键词或筛选条件，系统自动在互联网上检索符合条件的公司列表，并支持对目标公司进行深度信息抓取，获取企业详情。</p>
+
+<h3>1.1 核心场景</h3>
+<ol>
+    <li><strong>公司发现</strong>：根据用户输入的条件（行业、关键词、地域等），在公开网站上检索并汇总公司列表。</li>
+    <li><strong>详情抓取</strong>：用户在搜索结果中选择某家公司，系统自动抓取该公司的详细信息（工商信息、联系方式、业务描述等）。</li>
+</ol>
+
+<h2>2. 用户角色</h2>
+<table>
+    <tr><th>角色</th><th>描述</th><th>核心诉求</th></tr>
+    <tr><td>普通用户</td><td>使用系统检索公司信息</td><td>快速找到目标公司，获取完整信息</td></tr>
+    <tr><td>管理员</td><td>管理爬虫配置、数据源、调度策略</td><td>灵活管理爬取源，监控爬取状态</td></tr>
+</table>
+
+<h2>3. 功能需求</h2>
+
+<h3>3.1 公司列表检索</h3>
+<table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td>功能编号</td><td>F-001</td></tr>
+    <tr><td>优先级</td><td><span class="tag p0">P0</span></td></tr>
+    <tr><td>描述</td><td>接收用户输入的搜索条件，在多个公开数据源中检索公司并返回列表</td></tr>
+    <tr><td>输入</td><td>关键词（公司名称/行业/业务描述）、可选的地域筛选</td></tr>
+    <tr><td>输出</td><td>匹配的公司列表，包含：公司名称、统一社会信用代码、注册地址、简要行业、数据来源</td></tr>
+</table>
+
+<p><strong>业务流程：</strong></p>
+<ol>
+    <li>用户在界面输入关键词及可选筛选条件</li>
+    <li>系统将关键词转化为各数据源对应的搜索请求</li>
+    <li>并行查询多个公开数据源</li>
+    <li>对返回结果进行去重、排序、分页</li>
+    <li>将公司列表返回前端展示</li>
+</ol>
+
+<h3>3.2 公司详情抓取</h3>
+<table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td>功能编号</td><td>F-002</td></tr>
+    <tr><td>优先级</td><td><span class="tag p0">P0</span></td></tr>
+    <tr><td>描述</td><td>用户在列表中选中一家公司，系统自动抓取并展示该公司的详细信息</td></tr>
+    <tr><td>输入</td><td>公司标识（统一社会信用代码或数据源返回的唯一 ID）</td></tr>
+    <tr><td>输出</td><td>公司详细信息</td></tr>
+</table>
+
+<p><strong>详情字段包括但不限于：</strong></p>
+<ul>
+    <li>基本信息：公司名称、简称、统一社会信用代码、法定代表人、注册资本、成立日期、营业期限</li>
+    <li>联系信息：注册地址、办公地址、联系电话、邮箱、官网</li>
+    <li>经营信息：经营范围、行业分类、企业状态（存续/注销/吊销）</li>
+    <li>股东信息：股东名称、出资额、持股比例</li>
+    <li>变更记录：工商变更历史</li>
+    <li>数据来源及抓取时间</li>
+</ul>
+
+<p><strong>业务流程：</strong></p>
+<ol>
+    <li>用户在列表页面点击目标公司</li>
+    <li>系统根据数据来源构造详情页抓取请求</li>
+    <li>模拟访问目标页面，解析结构化数据</li>
+    <li>清洗、校验、存储抓取结果</li>
+    <li>将详情数据返回前端展示</li>
+</ol>
+
+<h3>3.3 数据源管理</h3>
+<table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td>功能编号</td><td>F-003</td></tr>
+    <tr><td>优先级</td><td><span class="tag p1">P1</span></td></tr>
+    <tr><td>描述</td><td>管理可配置的公开数据源，支持增删改查和启停控制</td></tr>
+</table>
+
+<h3>3.4 结果导出</h3>
+<table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td>功能编号</td><td>F-004</td></tr>
+    <tr><td>优先级</td><td><span class="tag p1">P1</span></td></tr>
+    <tr><td>描述</td><td>支持将搜索结果和详情数据导出为 CSV / Excel / JSON 文件</td></tr>
+</table>
+
+<h3>3.5 爬取日志与监控</h3>
+<table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td>功能编号</td><td>F-005</td></tr>
+    <tr><td>优先级</td><td><span class="tag p2">P2</span></td></tr>
+    <tr><td>描述</td><td>记录每次爬取任务的状态、耗时、成功/失败情况，提供简单看板</td></tr>
+</table>
+
+<h2>4. 功能优先级总览</h2>
+<table>
+    <tr><th>编号</th><th>功能</th><th>优先级</th><th>里程碑</th></tr>
+    <tr><td>F-001</td><td>公司列表检索</td><td><span class="tag p0">P0</span></td><td>MVP</td></tr>
+    <tr><td>F-002</td><td>公司详情抓取</td><td><span class="tag p0">P0</span></td><td>MVP</td></tr>
+    <tr><td>F-003</td><td>数据源管理</td><td><span class="tag p1">P1</span></td><td>V1.1</td></tr>
+    <tr><td>F-004</td><td>结果导出</td><td><span class="tag p1">P1</span></td><td>V1.1</td></tr>
+    <tr><td>F-005</td><td>爬取日志与监控</td><td><span class="tag p2">P2</span></td><td>V1.2</td></tr>
+</table>
+
+<h2>5. 系统架构</h2>
+
+<h3>5.1 逻辑架构</h3>
+<div class="architecture">
+┌──────────────────────────────────────────────────┐
+│                  前端展示层                        │
+│   ┌──────────┐  ┌───────────┐  ┌──────────────┐  │
+│   │ 搜索输入  │  │ 结果列表   │  │  公司详情页   │  │
+│   └────┬─────┘  └─────┬─────┘  └──────┬───────┘  │
+└────────┼──────────────┼───────────────┼──────────┘
+         │              │               │
+┌────────▼──────────────▼───────────────▼──────────┐
+│                   API 服务层                      │
+│   ┌────────────┐  ┌────────────────────────────┐  │
+│   │ 搜索路由    │  │  详情抓取路由               │  │
+│   └─────┬──────┘  └──────────┬─────────────────┘  │
+└─────────┼────────────────────┼────────────────────┘
+          │                    │
+┌─────────▼────────────────────▼────────────────────┐
+│                  爬虫引擎层                         │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐           │
+│  │ 搜索爬虫  │ │ 详情爬虫  │ │ 解析引擎  │           │
+│  │ (List)   │ │ (Detail) │ │ (Parser) │           │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘           │
+└───────┼────────────┼────────────┼──────────────────┘
+        │            │            │
+┌───────▼────────────▼────────────▼──────────────────┐
+│                  数据存储层                         │
+│  ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │
+│  │ 结果缓存  │ │ 持久存储  │ │  日志/审计记录    │   │
+│  │ (Redis)  │ │ (SQLite) │ │  (File/SQLite)   │   │
+│  └──────────┘ └──────────┘ └──────────────────┘   │
+└──────────────────────────────────────────────────┘
+</div>
+
+<h3>5.2 技术选型建议</h3>
+<table>
+    <tr><th>层次</th><th>技术方案</th><th>说明</th></tr>
+    <tr><td>前端</td><td>HTML/CSS/JS 或 Streamlit</td><td>轻量级界面，快速迭代</td></tr>
+    <tr><td>后端框架</td><td>FastAPI (Python)</td><td>异步支持好，与爬虫生态契合</td></tr>
+    <tr><td>爬虫核心</td><td>Playwright / httpx + BeautifulSoup</td><td>Playwright 处理动态渲染页面，httpx 处理静态页面</td></tr>
+    <tr><td>数据存储</td><td>SQLite</td><td>MVP 阶段轻量持久化</td></tr>
+    <tr><td>缓存</td><td>内存缓存 / 可选 Redis</td><td>减少重复请求，降低被封禁风险</td></tr>
+    <tr><td>任务调度</td><td>asyncio</td><td>并发请求，提高爬取效率</td></tr>
+</table>
+
+<h2>6. 非功能需求</h2>
+<table>
+    <tr><th>维度</th><th>要求</th></tr>
+    <tr><td>性能</td><td>公司列表搜索响应时间 &lt; 10 秒；详情页抓取 &lt; 15 秒</td></tr>
+    <tr><td>并发</td><td>支持同一用户并发 3 个数据源查询</td></tr>
+    <tr><td>可用性</td><td>单个数据源失败不影响其他数据源返回结果（降级策略）</td></tr>
+    <tr><td>合规性</td><td>遵守目标网站 robots.txt；请求频率可控；不抓取隐私敏感数据</td></tr>
+    <tr><td>可扩展</td><td>数据源采用插件化设计，新增数据源只需添加对应适配器</td></tr>
+</table>
+
+<h2>7. 数据模型</h2>
+
+<h3>7.1 Company（公司）</h3>
+<table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER (PK)</td><td>自增主键</td></tr>
+    <tr><td>name</td><td>TEXT</td><td>公司名称</td></tr>
+    <tr><td>credit_code</td><td>TEXT</td><td>统一社会信用代码</td></tr>
+    <tr><td>legal_representative</td><td>TEXT</td><td>法定代表人</td></tr>
+    <tr><td>registered_capital</td><td>TEXT</td><td>注册资本</td></tr>
+    <tr><td>establish_date</td><td>TEXT</td><td>成立日期</td></tr>
+    <tr><td>address</td><td>TEXT</td><td>注册地址</td></tr>
+    <tr><td>business_scope</td><td>TEXT</td><td>经营范围</td></tr>
+    <tr><td>status</td><td>TEXT</td><td>企业状态</td></tr>
+    <tr><td>source</td><td>TEXT</td><td>数据来源</td></tr>
+    <tr><td>source_url</td><td>TEXT</td><td>来源链接</td></tr>
+    <tr><td>created_at</td><td>DATETIME</td><td>创建时间</td></tr>
+    <tr><td>updated_at</td><td>DATETIME</td><td>更新时间</td></tr>
+</table>
+
+<h3>7.2 SearchRecord（搜索记录）</h3>
+<table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER (PK)</td><td>自增主键</td></tr>
+    <tr><td>keyword</td><td>TEXT</td><td>搜索关键词</td></tr>
+    <tr><td>filters</td><td>TEXT (JSON)</td><td>筛选条件</td></tr>
+    <tr><td>result_count</td><td>INTEGER</td><td>结果数量</td></tr>
+    <tr><td>created_at</td><td>DATETIME</td><td>搜索时间</td></tr>
+</table>
+
+<h3>7.3 CrawlLog（爬取日志）</h3>
+<table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER (PK)</td><td>自增主键</td></tr>
+    <tr><td>task_type</td><td>TEXT</td><td>任务类型：search / detail</td></tr>
+    <tr><td>source</td><td>TEXT</td><td>数据来源</td></tr>
+    <tr><td>url</td><td>TEXT</td><td>请求 URL</td></tr>
+    <tr><td>status</td><td>TEXT</td><td>success / failed</td></tr>
+    <tr><td>duration_ms</td><td>INTEGER</td><td>耗时（毫秒）</td></tr>
+    <tr><td>error</td><td>TEXT</td><td>错误信息</td></tr>
+    <tr><td>created_at</td><td>DATETIME</td><td>记录时间</td></tr>
+</table>
+
+<h2>8. 接口设计</h2>
+
+<h3>8.1 搜索公司列表</h3>
+<table>
+    <tr><th colspan="2">POST /api/companies/search</th></tr>
+    <tr><td>请求体</td><td><code>{ "keyword": "string", "filters": { "region": "string" } }</code></td></tr>
+    <tr><td>响应体</td><td><code>{ "total": int, "companies": [ { "id": int, "name": str, "credit_code": str, "source": str, ... } ] }</code></td></tr>
+</table>
+
+<h3>8.2 获取公司详情</h3>
+<table>
+    <tr><th colspan="2">GET /api/companies/{id}/detail</th></tr>
+    <tr><td>路径参数</td><td>id: 公司 ID</td></tr>
+    <tr><td>响应体</td><td><code>{ "id": int, "name": str, "legal_representative": str, "registered_capital": str, ..., "source_url": str }</code></td></tr>
+</table>
+
+<h3>8.3 导出结果</h3>
+<table>
+    <tr><th colspan="2">GET /api/companies/export</th></tr>
+    <tr><td>查询参数</td><td>format: csv | json | xlsx；keyword: string（可选）</td></tr>
+    <tr><td>响应</td><td>文件下载</td></tr>
+</table>
+
+<h2>9. 项目规划</h2>
+
+<h3>9.1 MVP（V1.0）交付范围</h3>
+<ul>
+    <li>实现 F-001：基于至少一个数据源的公司列表搜索</li>
+    <li>实现 F-002：选定公司后的详情抓取与展示</li>
+    <li>基础前端界面：搜索框 + 结果列表 + 详情面板</li>
+    <li>SQLite 持久化存储</li>
+</ul>
+
+<h3>9.2 V1.1 迭代</h3>
+<ul>
+    <li>多数据源并行搜索 + 结果去重合并</li>
+    <li>F-003 数据源管理（增删改查、启停）</li>
+    <li>F-004 结果导出（CSV / Excel）</li>
+</ul>
+
+<h3>9.3 V1.2 迭代</h3>
+<ul>
+    <li>F-005 爬取日志与监控看板</li>
+    <li>反爬策略优化（代理池、请求频率控制）</li>
+    <li>缓存策略优化</li>
+</ul>
+
+<h2>10. 风险与约束</h2>
+<table>
+    <tr><th>风险</th><th>影响</th><th>缓解措施</th></tr>
+    <tr><td>目标网站反爬升级</td><td>爬取失败或 IP 被封</td><td>请求限流、User-Agent 轮换、代理池</td></tr>
+    <tr><td>网页结构变更</td><td>解析失败、数据缺失</td><td>解析层与爬取层解耦；定期校验；告警通知</td></tr>
+    <tr><td>法律合规风险</td><td>数据使用受限</td><td>仅抓取公开信息；遵守 robots.txt；控制请求频率</td></tr>
+    <tr><td>数据准确性</td><td>不同数据源信息不一致</td><td>多源交叉验证；标记置信度</td></tr>
+</table>
+
+<div class="note">
+    <strong>注意：</strong>本项目仅针对互联网公开信息进行采集，需严格遵守各数据源的服务条款和 robots.txt 协议。严禁采集个人隐私数据或绕过身份验证机制。
+</div>
+
+</div>
+</body>
+</html>

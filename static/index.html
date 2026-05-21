@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSpider - 企业信息检索</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f0f2f5;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header .subtitle { font-size: 13px; color: #8899aa; margin-top: 2px; }
+        .search-bar {
+            background: #fff;
+            padding: 24px 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #dde1e7;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        .search-bar input:focus { outline: none; border-color: #4361ee; }
+        .search-bar button {
+            padding: 12px 28px;
+            background: #4361ee;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-bar button:hover { background: #3a56d4; }
+        .search-bar button:disabled { background: #aab4d6; cursor: not-allowed; }
+        .main { display: flex; gap: 0; min-height: calc(100vh - 160px); }
+
+        /* Left panel: company list */
+        .list-panel {
+            width: 420px;
+            min-width: 340px;
+            background: #fff;
+            border-right: 1px solid #e0e4ea;
+            overflow-y: auto;
+        }
+        .list-panel .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .list-panel .panel-header span { font-size: 14px; color: #666; }
+        .list-panel .count { font-weight: 600; color: #4361ee; }
+        .company-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f5f6fa;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .company-item:hover { background: #f0f4ff; }
+        .company-item.active { background: #e8ecff; border-left: 3px solid #4361ee; }
+        .company-item .name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 6px; }
+        .company-item .meta { font-size: 13px; color: #888; display: flex; gap: 12px; flex-wrap: wrap; }
+        .company-item .meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* Right panel: detail */
+        .detail-panel {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+        }
+        .detail-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #aaa;
+        }
+        .detail-empty .icon { font-size: 64px; margin-bottom: 16px; }
+        .detail-empty p { font-size: 16px; }
+        .detail-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            padding: 28px 32px;
+        }
+        .detail-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .detail-card .card-header h2 { font-size: 22px; color: #1a1a2e; }
+        .detail-card .card-header .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge.active { background: #d4edda; color: #155724; }
+        .badge.inactive { background: #f8d7da; color: #721c24; }
+        .badge.default { background: #e2e3e5; color: #383d41; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 12px 24px;
+        }
+        .info-grid .label {
+            font-size: 14px;
+            color: #888;
+            font-weight: 500;
+        }
+        .info-grid .value {
+            font-size: 14px;
+            color: #333;
+            word-break: break-all;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 24px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #999; }
+        .spinner {
+            display: inline-block;
+            width: 32px; height: 32px;
+            border: 3px solid #e0e4ea;
+            border-top-color: #4361ee;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Export bar */
+        .export-bar {
+            padding: 10px 20px;
+            border-top: 1px solid #f0f2f5;
+            display: flex;
+            gap: 8px;
+        }
+        .export-bar button {
+            padding: 6px 14px;
+            border: 1px solid #dde1e7;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+        }
+        .export-bar button:hover { background: #f0f4ff; border-color: #4361ee; color: #4361ee; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1>NetSpider</h1>
+        <div class="subtitle">企业信息网络爬虫系统</div>
+    </div>
+</div>
+
+<div class="search-bar">
+    <input type="text" id="searchInput" placeholder="输入公司关键词（名称、行业、地域），如：科技、医药、北京..." />
+    <button id="searchBtn" onclick="doSearch()">搜 索</button>
+</div>
+
+<div class="main">
+    <div class="list-panel">
+        <div class="panel-header">
+            <span>搜索结果（<span class="count" id="resultCount">0</span>）</span>
+        </div>
+        <div id="companyList"></div>
+        <div class="export-bar">
+            <button onclick="doExport('csv')">导出 CSV</button>
+            <button onclick="doExport('json')">导出 JSON</button>
+        </div>
+    </div>
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-empty">
+            <div class="icon">&#x1f50d;</div>
+            <p>请在左侧搜索结果中选择一家公司查看详情</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE = "";
+let currentCompanies = [];
+
+document.getElementById("searchInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") doSearch();
+});
+
+async function doSearch() {
+    const keyword = document.getElementById("searchInput").value.trim();
+    if (!keyword) return;
+
+    const btn = document.getElementById("searchBtn");
+    btn.disabled = true;
+    btn.textContent = "搜索中...";
+    document.getElementById("companyList").innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px">正在检索公司...</p></div>';
+    document.getElementById("detailPanel").innerHTML = '<div class="detail-empty"><div class="icon">&#x1f50d;</div><p>请在左侧搜索结果中选择一家公司查看详情</p></div>';
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/companies/search`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ keyword: keyword })
+        });
+        if (!resp.ok) throw new Error(resp.statusText);
+        const data = await resp.json();
+
+        currentCompanies = data.companies;
+        document.getElementById("resultCount").textContent = data.total;
+
+        const listEl = document.getElementById("companyList");
+        if (data.companies.length === 0) {
+            listEl.innerHTML = '<div class="loading">未找到匹配的公司，请尝试其他关键词</div>';
+            return;
+        }
+
+        listEl.innerHTML = data.companies.map((c, i) => `
+            <div class="company-item" id="item-${c.id}" onclick="showDetail(${c.id})">
+                <div class="name">${escapeHtml(c.name)}</div>
+                <div class="meta">
+                    ${c.credit_code ? `<span>信用码: ${escapeHtml(c.credit_code.slice(0, 8))}***</span>` : ''}
+                    ${c.industry ? `<span>${escapeHtml(c.industry)}</span>` : ''}
+                    <span style="color:#aab4d6">${escapeHtml(c.source)}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        document.getElementById("companyList").innerHTML = `<div class="loading" style="color:#c0392b">搜索失败: ${escapeHtml(err.message)}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "搜 索";
+    }
+}
+
+async function showDetail(companyId) {
+    // Highlight active
+    document.querySelectorAll(".company-item").forEach(el => el.classList.remove("active"));
+    const item = document.getElementById(`item-${companyId}`);
+    if (item) item.classList.add("active");
+
+    const panel = document.getElementById("detailPanel");
+    panel.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px">正在抓取公司详情...</p></div>';
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/companies/${companyId}/detail`);
+        if (!resp.ok) throw new Error(resp.statusText);
+        const d = await resp.json();
+
+        const statusClass = d.status === "存续" ? "active" : "inactive";
+
+        panel.innerHTML = `
+            <div class="detail-card">
+                <div class="card-header">
+                    <h2>${escapeHtml(d.name)}</h2>
+                    <span class="badge ${statusClass}">${escapeHtml(d.status || '未知')}</span>
+                </div>
+
+                <div class="section-title">基本信息</div>
+                <div class="info-grid">
+                    <div class="label">统一社会信用代码</div><div class="value">${escapeHtml(d.credit_code || '-')}</div>
+                    <div class="label">法定代表人</div><div class="value">${escapeHtml(d.legal_representative || '-')}</div>
+                    <div class="label">注册资本</div><div class="value">${escapeHtml(d.registered_capital || '-')}</div>
+                    <div class="label">成立日期</div><div class="value">${escapeHtml(d.establish_date || '-')}</div>
+                    <div class="label">行业</div><div class="value">${escapeHtml(d.industry || '-')}</div>
+                    <div class="label">注册地址</div><div class="value">${escapeHtml(d.address || '-')}</div>
+                </div>
+
+                <div class="section-title">联系信息</div>
+                <div class="info-grid">
+                    <div class="label">联系电话</div><div class="value">${escapeHtml(d.phone || '-')}</div>
+                    <div class="label">邮箱</div><div class="value">${escapeHtml(d.email || '-')}</div>
+                    <div class="label">官网</div><div class="value">${d.website ? `<a href="${escapeHtml(d.website)}" target="_blank">${escapeHtml(d.website)}</a>` : '-'}</div>
+                </div>
+
+                <div class="section-title">经营范围</div>
+                <div style="font-size:14px;color:#555;line-height:1.8;padding:8px 0;">${escapeHtml(d.business_scope || '-')}</div>
+
+                <div class="section-title">数据来源</div>
+                <div class="info-grid">
+                    <div class="label">数据来源</div><div class="value">${escapeHtml(d.source || '-')}</div>
+                    <div class="label">来源链接</div><div class="value">${d.source_url ? `<a href="${escapeHtml(d.source_url)}" target="_blank">${escapeHtml(d.source_url)}</a>` : '-'}</div>
+                </div>
+            </div>
+        `;
+    } catch (err) {
+        panel.innerHTML = `<div class="loading" style="color:#c0392b">详情抓取失败: ${escapeHtml(err.message)}</div>`;
+    }
+}
+
+async function doExport(format) {
+    const keyword = document.getElementById("searchInput").value.trim();
+    const url = `${API_BASE}/api/companies/export?format=${format}${keyword ? '&keyword=' + encodeURIComponent(keyword) : ''}`;
+    window.open(url, '_blank');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSpider — FastAPI 自动生成 API 文档</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f7fa;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 48px 56px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            border-bottom: 3px solid #4361ee;
+            padding-bottom: 12px;
+            margin-bottom: 32px;
+        }
+        h2 {
+            font-size: 22px;
+            color: #2b2d42;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 4px solid #4361ee;
+        }
+        h3 {
+            font-size: 18px;
+            color: #3d405b;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+        p { margin-bottom: 12px; color: #555; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #dde1e7;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        th {
+            background: #f0f4ff;
+            color: #2b2d42;
+            font-weight: 600;
+        }
+        tr:nth-child(even) { background: #fafbfc; }
+        ul, ol { margin: 12px 0 12px 24px; color: #555; }
+        li { margin-bottom: 6px; }
+        code {
+            background: #f0f4ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            color: #4361ee;
+        }
+        pre {
+            background: #f8f9fb;
+            border: 1px solid #e0e4ea;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .note {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 14px;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1>FastAPI 自动生成 API 文档</h1>
+
+<h2>对话背景</h2>
+<p><strong>用户提问：</strong>API 文档是如何生成的？</p>
+<p><strong>核心结论：</strong>FastAPI <strong>自动生成</strong> API 文档，开发者不需要手动编写任何文档文件。</p>
+
+<h2>一、自动生成的原理</h2>
+
+<p>FastAPI 在启动时扫描所有路由定义，基于以下三要素构建 OpenAPI 规范（JSON），再由 Swagger UI 或 ReDoc 渲染为可视化页面：</p>
+
+<table>
+    <tr><th>信息来源</th><th>说明</th><th>生成文档中的内容</th></tr>
+    <tr><td><strong>路由装饰器</strong><br><code>@router.post("/search")</code></td><td>HTTP 方法 + URL 路径</td><td>接口地址和请求方法（如 POST /api/companies/search）</td></tr>
+    <tr><td><strong>Pydantic 模型</strong><br>参数类型和 <code>response_model</code></td><td>字段名、类型、是否必填、默认值</td><td>请求体和响应体的完整 Schema</td></tr>
+    <tr><td><strong>FastAPI 参数</strong><br><code>Query()</code>、<code>Path()</code> 等</td><td>查询参数、路径参数的元信息</td><td>参数的类型、必填、示例值</td></tr>
+</table>
+
+<h2>二、代码与文档的对应关系</h2>
+
+<p>以搜索接口为例，<code>app/routers/companies.py</code> 中的函数定义：</p>
+
+<pre>
+@router.post("/search", response_model=SearchResponse)
+async def search_companies_api(
+    req: SearchRequest,
+    db: Session = Depends(get_db)
+):
+    """Search companies by keyword across enabled data sources."""
+    ...
+</pre>
+
+<p>FastAPI 自动提取的信息如下：</p>
+
+<table>
+    <tr><th>代码元素</th><th>提取信息</th><th>文档展示</th></tr>
+    <tr><td><code>@router.post("/search")</code></td><td>POST + /api/companies/search</td><td>接口地址</td></tr>
+    <tr><td><code>req: SearchRequest</code></td><td>请求体模型：keyword(str, required)、filters(dict, optional)</td><td>请求体 Schema</td></tr>
+    <tr><td><code>response_model=SearchResponse</code></td><td>响应体模型：total(int)、companies(array)</td><td>响应体 Schema</td></tr>
+    <tr><td>函数文档字符串</td><td>"Search companies by keyword..."</td><td>接口描述</td></tr>
+</table>
+
+<h2>三、访问地址</h2>
+
+<p>启动服务后，FastAPI 自动挂载了两个文档页面（无需任何额外配置）：</p>
+
+<table>
+    <tr><th>地址</th><th>引擎</th><th>特点</th></tr>
+    <tr><td>http://localhost:8000/docs</td><td><strong>Swagger UI</strong></td><td>可视化，可直接点击 "Try it out" 发送请求，在线调试接口</td></tr>
+    <tr><td>http://localhost:8000/redoc</td><td><strong>ReDoc</strong></td><td>更美观的静态文档排版，适合阅读和分享</td></tr>
+</table>
+
+<div class="note">
+    <strong>关键优势：</strong>接口代码一旦修改（增删字段、改路径、换方法），文档自动同步更新。不需要你写一行文档代码，也不需要维护单独的 YAML/JSON 文件。
+</div>
+
+<h2>四、Pydantic 模型的自动序列化</h2>
+
+<p><code>app/schemas.py</code> 中定义的模型是文档的核心数据源：</p>
+
+<pre>
+class SearchRequest(BaseModel):
+    keyword: str
+    filters: Optional[dict] = None
+
+class SearchResponse(BaseModel):
+    total: int
+    companies: list[CompanyBrief]
+</pre>
+
+<p>FastAPI 会将这些类型注解翻译为 JSON Schema：</p>
+
+<pre>
+SearchRequest:
+  type: object
+  properties:
+    keyword:
+      type: string
+    filters:
+      type: object
+  required: ["keyword"]
+
+SearchResponse:
+  type: object
+  properties:
+    total:
+      type: integer
+    companies:
+      type: array
+      items:
+        $ref: "#/components/schemas/CompanyBrief"
+  required: ["total", "companies"]
+</pre>
+
+<p>这个 JSON Schema 就是 Swagger UI 和 ReDoc 渲染文档的基础数据。</p>
+
+</div>
+</body>
+</html>
