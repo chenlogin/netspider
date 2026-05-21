@@ -11,12 +11,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from app.config import DATA_SOURCES, CRAWL_MODE
 from app.database import get_db
 from app.models.company import Company, CrawlLog, SearchRecord
 from app.schemas import (
     CompanyBrief,
     CompanyDetail,
     CrawlLogBrief,
+    ConfigResponse,
     SearchRequest,
     SearchResponse,
 )
@@ -63,7 +65,8 @@ async def search_companies_api(req: SearchRequest, db: Session = Depends(get_db)
     start = time.time()
     try:
         filters = req.filters or {}
-        results = await search_companies(req.keyword, **filters)
+        mode = req.mode or CRAWL_MODE
+        results = await search_companies(req.keyword, mode=mode, **filters)
 
         # Record search
         record = SearchRecord(
@@ -111,6 +114,15 @@ async def search_companies_api(req: SearchRequest, db: Session = Depends(get_db)
         duration_ms = int((time.time() - start) * 1000)
         _log_crawl(db, "search", "all", "", "failed", duration_ms, str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/config", response_model=ConfigResponse)
+async def get_config():
+    """Get current crawler configuration."""
+    return ConfigResponse(
+        crawl_mode=CRAWL_MODE,
+        sources=DATA_SOURCES,
+    )
 
 
 @router.get("/{company_id}/detail", response_model=CompanyDetail)

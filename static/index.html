@@ -50,6 +50,26 @@
         }
         .search-bar button:hover { background: #3a56d4; }
         .search-bar button:disabled { background: #aab4d6; cursor: not-allowed; }
+
+        /* Mode switch */
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border: 2px solid #dde1e7;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .mode-switch:hover { border-color: #4361ee; background: #f0f4ff; }
+        .mode-switch.active { border-color: #4361ee; background: #e8ecff; color: #4361ee; font-weight: 600; }
+        .mode-switch .icon { font-size: 16px; }
+
         .main { display: flex; gap: 0; min-height: calc(100vh - 160px); }
 
         /* Left panel: company list */
@@ -188,6 +208,10 @@
 
 <div class="search-bar">
     <input type="text" id="searchInput" placeholder="输入公司关键词（名称、行业、地域），如：科技、医药、北京..." />
+    <div id="modeSwitch" class="mode-switch active" onclick="toggleMode()">
+        <span class="icon">&#x1f4cb;</span>
+        <span id="modeLabel">Mock 数据</span>
+    </div>
     <button id="searchBtn" onclick="doSearch()">搜 索</button>
 </div>
 
@@ -213,10 +237,27 @@
 <script>
 const API_BASE = "";
 let currentCompanies = [];
+let crawlMode = "mock";  // "mock" or "live"
 
 document.getElementById("searchInput").addEventListener("keydown", function(e) {
     if (e.key === "Enter") doSearch();
 });
+
+function toggleMode() {
+    crawlMode = crawlMode === "mock" ? "live" : "mock";
+    const el = document.getElementById("modeSwitch");
+    const label = document.getElementById("modeLabel");
+    const icon = el.querySelector(".icon");
+    if (crawlMode === "mock") {
+        el.classList.add("active");
+        label.textContent = "Mock 数据";
+        icon.innerHTML = "&#x1f4cb;";
+    } else {
+        el.classList.remove("active");
+        label.textContent = "爱企查实时";
+        icon.innerHTML = "&#x1f310;";
+    }
+}
 
 async function doSearch() {
     const keyword = document.getElementById("searchInput").value.trim();
@@ -232,7 +273,7 @@ async function doSearch() {
         const resp = await fetch(`${API_BASE}/api/companies/search`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ keyword: keyword })
+            body: JSON.stringify({ keyword: keyword, mode: crawlMode })
         });
         if (!resp.ok) throw new Error(resp.statusText);
         const data = await resp.json();

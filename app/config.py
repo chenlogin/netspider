@@ -16,4 +16,7 @@ USER_AGENT = os.getenv(
 )
 
 # Data sources (enabled sources will be queried)
-DATA_SOURCES = ["qichacha_mock"]  # replace with real sources when available
+DATA_SOURCES = os.getenv("DATA_SOURCES", "aiqicha").split(",")  # e.g. "aiqicha" or "aiqicha,qichacha_mock"
+
+# Crawl mode: "mock" for demo data, "live" for real scraping
+CRAWL_MODE = os.getenv("CRAWL_MODE", "live")  # "mock" | "live"

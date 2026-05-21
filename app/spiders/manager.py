@@ -13,8 +13,16 @@ logger = logging.getLogger(__name__)
 
 # Registry of available spiders
 SPIDER_REGISTRY: dict[str, type[BaseSpider]] = {
-    "qichacha_mock": QichachaMockSpider,
+    "mock": QichachaMockSpider,
 }
+
+# Try to register aiqicha spider (requires playwright)
+try:
+    from app.spiders.aiqicha_spider import AiqichaSpider
+    SPIDER_REGISTRY["aiqicha"] = AiqichaSpider
+except ImportError:
+    logger.warning("Playwright not installed. aiqicha spider is disabled. "
+                   "Run: python3 -m pip install playwright -i https://mirrors.aliyun.com/pypi/simple/")
 
 
 def get_spider(source: str) -> BaseSpider:
@@ -25,9 +33,16 @@ def get_spider(source: str) -> BaseSpider:
     return spider_cls()
 
 
-async def search_companies(keyword: str, **filters) -> list[CompanySearchResult]:
+async def search_companies(keyword: str, mode: str = "live", **filters) -> list[CompanySearchResult]:
     """Search across all enabled data sources concurrently, deduplicate, return merged results."""
-    sources = [s for s in DATA_SOURCES if s in SPIDER_REGISTRY]
+    if mode == "mock":
+        sources = ["mock"]
+    else:
+        sources = [s for s in DATA_SOURCES if s in SPIDER_REGISTRY]
+        # Fallback to mock if no live sources available
+        if not sources:
+            logger.warning("No live data sources available, falling back to mock")
+            sources = ["mock"]
     if not sources:
         logger.warning("No data sources available")
         return []

@@ -124,7 +124,7 @@ MOCK_COMPANIES = [
 class QichachaMockSpider(BaseSpider):
     """Mock spider that returns static sample data. Useful for MVP demos."""
 
-    source_name = "qichacha_mock"
+    source_name = "mock"
 
     async def search(self, keyword: str, **filters) -> list[CompanySearchResult]:
         await asyncio.sleep(random.uniform(0.5, 1.5))  # simulate network delay

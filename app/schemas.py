@@ -9,6 +9,12 @@ from pydantic import BaseModel
 class SearchRequest(BaseModel):
     keyword: str
     filters: Optional[dict] = None
+    mode: Optional[str] = None  # "mock" or "live"
+
+
+class ConfigResponse(BaseModel):
+    crawl_mode: str
+    sources: list[str]
 
 
 class CompanyBrief(BaseModel):
